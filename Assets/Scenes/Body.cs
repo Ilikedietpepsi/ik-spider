@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Body : MonoBehaviour
 {
-    private float detect_distance = 2f;
+    private float detect_distance = 4f;
     private List<Transform> targets = new List<Transform>();
 
     private bool even_step = true;
@@ -26,6 +26,7 @@ public class Body : MonoBehaviour
             RaycastHit hit;
             if(Physics.Raycast(targets[i].position, new Vector3(0f, -1f, 0f), out hit, detect_distance, surface))
             {
+                
                 legs[i].SetTarget(hit.point);
             }
         }
@@ -38,27 +39,37 @@ public class Body : MonoBehaviour
         GameObject leg_target = new GameObject($"{leg.name}_target");
         leg_target.transform.SetParent(this.transform);
 
-        leg_target.transform.position = leg.transform.position + direction*2f;
+        //leg_target.transform.position = leg.transform.position + direction*2f; //more natural, but not working for height adjustment
+
+        leg_target.transform.position = leg.GetJoint(2).position; //less natural, but working for height adjustment
 
         return leg_target.transform;
     }
 
     void FixedUpdate()
     {
+        float height = 0f;//initial adjusted height
+        
         for(int i=0; i<targets.Count; i++)
         {
             RaycastHit hit;
             if(Physics.Raycast(targets[i].position, new Vector3(0f, -1f, 0f), out hit, detect_distance, surface))
             {
+                height += hit.point.y;//height of each hit point
                 if ((hit.point - legs[i].target).magnitude > 2f)
                 {
                     if ((i%2==0)==even_step)
                     {
+                        
                         legs[i].SetTarget(hit.point);
                     }
+                    
                 }
+                
+
             }
         }
+        transform.position = new Vector3(transform.position.x, 2.82f+height / targets.Count,transform.position.z);//adjust the body height 
         even_step = !even_step;
 
  
@@ -67,6 +78,6 @@ public class Body : MonoBehaviour
     void Update()
     {   
         transform.position += -transform.right * 3f * Time.deltaTime * Input.GetAxis("Vertical");
-        transform.Rotate(0, 10f* Time.deltaTime * Input.GetAxis("Horizontal"), 0);
+        transform.Rotate(0, 50f* Time.deltaTime * Input.GetAxis("Horizontal"), 0);
     }
 }

@@ -15,7 +15,8 @@ public class Leg : MonoBehaviour
     private Vector3[] initialDirections = new Vector3[3];
     private const float MAX_ANGLE = 45f;
 
-    public int leg_num;
+    //Do not change this in the GUI if unsure
+    public int leg_num; //The right legs should have even number and left legs should have odd numbers.
     private void Awake() {
         spiderBody = this.transform.parent;
     }
@@ -32,19 +33,19 @@ public class Leg : MonoBehaviour
             up = target;
         }
         //force some position constraints
-        if (leg_num % 2 ==0) {
-            joints[1].transform.position += new Vector3(0,0,1) * spiderBody.localScale.z;
-            joints[2].transform.position += new Vector3(0,0,1) * spiderBody.localScale.z;
-        }
-        if (leg_num % 2 ==1) {
-            joints[1].transform.position += new Vector3(0,0,-1) * spiderBody.localScale.z;
-            joints[2].transform.position += new Vector3(0,0,-1) * spiderBody.localScale.z;
-        }
-        joints[1].transform.position += new Vector3(0,1,0) * spiderBody.localScale.y;
-        joints[2].transform.position += new Vector3(0,1,0) * spiderBody.localScale.y;
+        joints[1].transform.position += (joints[1].transform.position - new Vector3(spiderBody.transform.position.x, joints[1].transform.position.y, spiderBody.transform.position.z)).normalized;
+        joints[2].transform.position += (joints[1].transform.position - new Vector3(spiderBody.transform.position.x, joints[2].transform.position.y, spiderBody.transform.position.z)).normalized;
+        
+        joints[1].transform.position += new Vector3(0,1,0);
+        joints[2].transform.position += new Vector3(0,1,0);
         joints[2].transform.position = new Vector3(joints[1].transform.position.x, joints[2].transform.position.y, joints[2].transform.position.z);
         for (int i=0; i<ITER_NUM; i++)
             FABRIK(prevTarget);
+    }
+
+    public Transform GetJoint(int index)
+    {
+        return joints[index];
     }
     public void SetTarget(Vector3 pos)
     {
@@ -56,17 +57,16 @@ public class Leg : MonoBehaviour
     Vector3 Constraint(Vector3 prev, Vector3 desired, Vector3 new_joint, Vector3 prev_joint, float max_angle)
     {
 
-        // Step 2: Normalize both vectors
+        
         Vector3 prev_normalized = prev.normalized;
         Vector3 desired_normalized = desired.normalized;
 
-        // Step 3: Calculate the dot product
+
         float dotProduct = Vector3.Dot(prev_normalized, desired_normalized);
 
-        // Step 4: Compute the angle in radians
         float angleRadians = Mathf.Acos(Mathf.Clamp(dotProduct, -1.0f, 1.0f));
 
-        // Step 5: Convert to degrees (optional)
+      
         float angleDegrees = angleRadians * Mathf.Rad2Deg;
 
         if (angleDegrees > max_angle) {
