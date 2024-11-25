@@ -10,7 +10,7 @@ public class Leg : MonoBehaviour
     
     public Vector3 target;
     
-    private Vector3 targetPosUp;
+    private Vector3 up;
     private Vector3 prevTarget;
     private Vector3[] initialDirections = new Vector3[3];
     private const float MAX_ANGLE = 45f;
@@ -22,14 +22,14 @@ public class Leg : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (Vector3.Distance(this.prevTarget, targetPosUp) > 0.1f)
+        if (Vector3.Distance(this.prevTarget, up) > 0.1f)
         {
-            prevTarget = Vector3.Slerp(prevTarget, targetPosUp, 10f * Time.deltaTime);
+            prevTarget = Vector3.Slerp(prevTarget, up, 10f * Time.deltaTime);
         }
         else 
         {
             
-            targetPosUp = target;
+            up = target;
         }
         //force some position constraints
         if (leg_num % 2 ==0) {
@@ -49,7 +49,7 @@ public class Leg : MonoBehaviour
     public void SetTarget(Vector3 pos)
     {
         target = pos;
-        targetPosUp = target + new Vector3(0, 1, 0);
+        up = target + new Vector3(0, 0.5f, 0);
        
     }
 
@@ -88,7 +88,9 @@ public class Leg : MonoBehaviour
         // cylinder.transform.localScale = new Vector3(0.2f, 2f, 0.2f);
         // Quaternion rotation = Quaternion.FromToRotation(Vector3.up, axis);
         // cylinder.transform.rotation = rotation; 
-        // cylinder.transform.position = prev_joint + axis*1f;
+        // cylinder.transform.position = prev_joint - axis*1f;
+
+        Debug.Log("constraining..");
         Vector3 A = prev_joint;
         Vector3 C = new_joint;
         Vector3 B = prev_joint + axis * link * Mathf.Cos(angleDegrees*Mathf.PI/180);
@@ -113,14 +115,15 @@ public class Leg : MonoBehaviour
             Vector3 desired = joints[i].position - temp;
             
             Vector3 new_joint = temp + desired.normalized * 2f;
-            // // just to show what would happen if we add too much constraints
-            // if (i==2) {
-            //     joints[i].position = new_joint;
-            // }
-            // if (i!=2) {
-            //     joints[i].position = Constraint(initialDirections[i+1], desired, new_joint, joints[i+1].position, 80f);
-            // }
-            joints[i].position = new_joint;
+            
+            if (i==2) {
+                joints[i].position = new_joint;
+            }
+            if (i!=2) {
+                //joints[i].position = Constraint(initialDirections[i+1], desired, new_joint, joints[i+1].position, 180f);//NO CONSTRAINTS
+                joints[i].position = Constraint(initialDirections[i+1], desired, new_joint, joints[i+1].position, 80f);//SOME CONSTRAINTS
+                //joints[i].position = Constraint(initialDirections[i+1], desired, new_joint, joints[i+1].position, 40f);//BIG CONSTRAINTS
+            }
     
             
 
@@ -135,7 +138,6 @@ public class Leg : MonoBehaviour
         {
             if (i == 2) {
                 joints[i].LookAt(target);
-                //joints[i].LookAt(joints[i].position - new Vector3(0f, 2f, 0f));
             }
             
 
@@ -146,18 +148,11 @@ public class Leg : MonoBehaviour
                 Vector3 desired = joints[i + 1].position - joints[i].position;
                 float link_length = 2f; 
                 Vector3 new_joint = joints[i].position + desired.normalized * link_length;
-                float max_angle = 0f;
-                if (i==0) {
-                    max_angle = 10f;
-                }
-                if (i==1) {
-                    max_angle = 10f;
-                }
+                float max_angle = 60f;
                 Vector3 prev = joints[i + 1].position;
                 
-                
-                joints[i + 1].position = Constraint(-initialDirections[i], desired, new_joint, joints[i].position, max_angle);
-                //joints[i + 1].position = new_joint;
+            
+                joints[i + 1].position = new_joint;
                 joints[i].LookAt(joints[i+1].position);
             }
             

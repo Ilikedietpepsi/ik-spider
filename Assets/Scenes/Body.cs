@@ -27,13 +27,6 @@ public class Body : MonoBehaviour
             if(Physics.Raycast(targets[i].position, new Vector3(0f, -1f, 0f), out hit, detect_distance, surface))
             {
                 legs[i].SetTarget(hit.point);
-                // GameObject leg_target = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                // leg_target.name = $"{i}_target";
-
-                // // Set the scale to (1,1,1)
-                // leg_target.transform.localScale = new Vector3(1, 1, 1);
-                // leg_target.transform.position = hit.point;
-
             }
         }
     }
@@ -62,9 +55,6 @@ public class Body : MonoBehaviour
                     if ((i%2==0)==even_step)
                     {
                         legs[i].SetTarget(hit.point);
-                        // GameObject target = GameObject.Find($"{i}_target");
-                        // target.transform.position = hit.point;
-
                     }
                 }
             }
