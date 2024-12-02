@@ -9,8 +9,7 @@ public class Leg : MonoBehaviour
     public Transform[] joints;
     
     public Vector3 target;
-    
-    private Vector3 up;
+
     private Vector3 prevTarget;
     private Vector3[] initialDirections = new Vector3[3];
     private const float MAX_ANGLE = 45f;
@@ -23,14 +22,9 @@ public class Leg : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (Vector3.Distance(this.prevTarget, up) > 0.1f)
+        if (Vector3.Distance(this.prevTarget, target) > 0.1f)
         {
-            prevTarget = Vector3.Slerp(prevTarget, up, 10f * Time.deltaTime);
-        }
-        else 
-        {
-            
-            up = target;
+            prevTarget = Vector3.Slerp(prevTarget, target, 10f * Time.deltaTime);
         }
         //force some position constraints
         joints[1].transform.position += (joints[1].transform.position - new Vector3(spiderBody.transform.position.x, joints[1].transform.position.y, spiderBody.transform.position.z)).normalized;
@@ -42,7 +36,9 @@ public class Leg : MonoBehaviour
         for (int i=0; i<ITER_NUM; i++)
             FABRIK(prevTarget);
     }
-
+    public void setPrevTarget(Vector3 pos) {
+        prevTarget = pos;
+    }
     public Transform GetJoint(int index)
     {
         return joints[index];
@@ -50,8 +46,6 @@ public class Leg : MonoBehaviour
     public void SetTarget(Vector3 pos)
     {
         target = pos;
-        up = target + new Vector3(0, 0.5f, 0);
-       
     }
 
     Vector3 Constraint(Vector3 prev, Vector3 desired, Vector3 new_joint, Vector3 prev_joint, float max_angle)
@@ -122,7 +116,7 @@ public class Leg : MonoBehaviour
             if (i!=2) {
                 //joints[i].position = Constraint(initialDirections[i+1], desired, new_joint, joints[i+1].position, 180f);//NO CONSTRAINTS
                 joints[i].position = Constraint(initialDirections[i+1], desired, new_joint, joints[i+1].position, 80f);//SOME CONSTRAINTS
-                //joints[i].position = Constraint(initialDirections[i+1], desired, new_joint, joints[i+1].position, 40f);//BIG CONSTRAINTS
+                //joints[i].position = Constraint(initialDirections[i+1], desired, new_joint, joints[i+1].position, 10f);//BIG CONSTRAINTS
             }
     
             

@@ -28,6 +28,7 @@ public class Body : MonoBehaviour
             {
                 
                 legs[i].SetTarget(hit.point);
+                legs[i].setPrevTarget(hit.point);
             }
         }
     }
@@ -39,9 +40,9 @@ public class Body : MonoBehaviour
         GameObject leg_target = new GameObject($"{leg.name}_target");
         leg_target.transform.SetParent(this.transform);
 
-        //leg_target.transform.position = leg.transform.position + direction*2f; //more natural, but not working for height adjustment
+        leg_target.transform.position = leg.transform.position + direction*2f; //more natural, but not working for height adjustment
 
-        leg_target.transform.position = leg.GetJoint(2).position; //less natural, but working for height adjustment
+        //leg_target.transform.position = leg.GetJoint(2).position; //less natural, but working for height adjustment
 
         return leg_target.transform;
     }
