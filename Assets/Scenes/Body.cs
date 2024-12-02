@@ -50,13 +50,17 @@ public class Body : MonoBehaviour
     void FixedUpdate()
     {
         float height = 0f;//initial adjusted height
-        
+        Vector3 averageNormal = Vector3.zero;
+        int groundedLegs = 0;
+
         for(int i=0; i<targets.Count; i++)
         {
             RaycastHit hit;
             if(Physics.Raycast(targets[i].position, new Vector3(0f, -1f, 0f), out hit, detect_distance, surface))
             {
                 height += hit.point.y;//height of each hit point
+                averageNormal += hit.normal;
+                groundedLegs++;
                 if ((hit.point - legs[i].target).magnitude > 2f)
                 {
                     if ((i%2==0)==even_step)
@@ -70,7 +74,22 @@ public class Body : MonoBehaviour
 
             }
         }
-        transform.position = new Vector3(transform.position.x, 2.82f+height / targets.Count,transform.position.z);//adjust the body height 
+
+        if (groundedLegs > 0)
+        {
+            averageNormal /= groundedLegs;
+
+            float targetHeight = 2.82f + height / groundedLegs;
+            float smoothSpeed = 5f;
+            float newY = Mathf.Lerp(transform.position.y, targetHeight, Time.deltaTime * smoothSpeed);
+            transform.position = new Vector3(transform.position.x, newY, transform.position.z);
+
+        
+            Quaternion targetRotation = Quaternion.FromToRotation(transform.up, averageNormal) * transform.rotation;
+            float rotationSmoothSpeed = 5f;
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotationSmoothSpeed);
+        }
+
         even_step = !even_step;
 
  
