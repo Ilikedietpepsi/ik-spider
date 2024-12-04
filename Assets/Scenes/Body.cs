@@ -11,10 +11,17 @@ public class Body : MonoBehaviour
     private Leg[] legs;
 
     private LayerMask surface;
+
+    public float MAX_ANGLE = 80f; //Set this to a very small angle to see results with too much constraints.
+
+    public bool constraint = true; //Set this to false to see results with no constraints at all.
+
+    
+
     void Awake()
     {
         surface = LayerMask.GetMask("Walkable");
-        legs = GetComponentsInChildren<Leg>();
+        legs = GetComponentsInChildren<Leg>(); 
 
         foreach (Leg leg in legs)
         {
@@ -40,11 +47,18 @@ public class Body : MonoBehaviour
         GameObject leg_target = new GameObject($"{leg.name}_target");
         leg_target.transform.SetParent(this.transform);
 
-        leg_target.transform.position = leg.transform.position + direction*2f; //more natural, but not working for height adjustment
-
-        //leg_target.transform.position = leg.GetJoint(2).position; //less natural, but working for height adjustment
-
+        leg_target.transform.position = leg.transform.position + direction*2f;
         return leg_target.transform;
+    }
+
+    public float getMaxAngle()
+    {
+        return this.MAX_ANGLE;
+    }
+
+    public bool getConstraint()
+    {
+        return this.constraint;
     }
 
     void FixedUpdate()

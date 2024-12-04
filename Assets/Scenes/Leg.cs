@@ -4,20 +4,26 @@ using UnityEngine;
 
 public class Leg : MonoBehaviour
 {
-    public int ITER_NUM = 5;
-    public Transform spiderBody;
     public Transform[] joints;
     
     public Vector3 target;
-
+    
     private Vector3 prevTarget;
     private Vector3[] initialDirections = new Vector3[3];
-    private const float MAX_ANGLE = 45f;
 
-    //Do not change this in the GUI if unsure
-    public int leg_num; //The right legs should have even number and left legs should have odd numbers.
+    public int ITER_NUM = 5;
+    
+    public int leg_num; //Do not change this in the GUI if unsure.The right legs should have even number and left legs should have odd numbers.
+
+    
+    private Body spider;
+
+
     private void Awake() {
-        spiderBody = this.transform.parent;
+        if (spider == null)
+        {
+            spider = GetComponentInParent<Body>(); // Search for Body in parent hierarchy
+        }
     }
 
     void FixedUpdate()
@@ -26,15 +32,25 @@ public class Leg : MonoBehaviour
         {
             prevTarget = Vector3.Slerp(prevTarget, target, 10f * Time.deltaTime);
         }
+        if (spider.getConstraint())
+        {
+            position_constraint();
+        }
+        
+        for (int i=0; i<ITER_NUM; i++)
+            FABRIK(prevTarget);
+    }
+
+    void position_constraint()
+    {
+
         //force some position constraints
-        joints[1].transform.position += (joints[1].transform.position - new Vector3(spiderBody.transform.position.x, joints[1].transform.position.y, spiderBody.transform.position.z)).normalized;
-        joints[2].transform.position += (joints[1].transform.position - new Vector3(spiderBody.transform.position.x, joints[2].transform.position.y, spiderBody.transform.position.z)).normalized;
+        joints[1].transform.position += (joints[1].transform.position - new Vector3(spider.transform.position.x, joints[1].transform.position.y, spider.transform.position.z)).normalized;
+        joints[2].transform.position += (joints[1].transform.position - new Vector3(spider.transform.position.x, joints[2].transform.position.y, spider.transform.position.z)).normalized;
         
         joints[1].transform.position += new Vector3(0,1,0);
         joints[2].transform.position += new Vector3(0,1,0);
         joints[2].transform.position = new Vector3(joints[1].transform.position.x, joints[2].transform.position.y, joints[2].transform.position.z);
-        for (int i=0; i<ITER_NUM; i++)
-            FABRIK(prevTarget);
     }
     public void setPrevTarget(Vector3 pos) {
         prevTarget = pos;
@@ -65,8 +81,6 @@ public class Leg : MonoBehaviour
 
         if (angleDegrees > max_angle) {
             float link = 2f;
-            // Project the point onto the cone
-            
             Vector3 projectedPoint = ProjectPointOntoCone(prev_joint, new_joint, desired, prev_normalized, max_angle, link);
 
 
@@ -78,12 +92,6 @@ public class Leg : MonoBehaviour
 
     private Vector3 ProjectPointOntoCone(Vector3 prev_joint, Vector3 new_joint, Vector3 point, Vector3 axis, float angleDegrees, float link)
     {
-        // GameObject cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        // cylinder.transform.localScale = new Vector3(0.2f, 2f, 0.2f);
-        // Quaternion rotation = Quaternion.FromToRotation(Vector3.up, axis);
-        // cylinder.transform.rotation = rotation; 
-        // cylinder.transform.position = prev_joint - axis*1f;
-
         Debug.Log("constraining..");
         Vector3 A = prev_joint;
         Vector3 C = new_joint;
@@ -114,9 +122,15 @@ public class Leg : MonoBehaviour
                 joints[i].position = new_joint;
             }
             if (i!=2) {
-                //joints[i].position = Constraint(initialDirections[i+1], desired, new_joint, joints[i+1].position, 180f);//NO CONSTRAINTS
-                joints[i].position = Constraint(initialDirections[i+1], desired, new_joint, joints[i+1].position, 80f);//SOME CONSTRAINTS
-                //joints[i].position = Constraint(initialDirections[i+1], desired, new_joint, joints[i+1].position, 10f);//BIG CONSTRAINTS
+                if (!spider.getConstraint())
+                {
+                    joints[i].position = new_joint;
+                }
+                else{
+                    joints[i].position = Constraint(initialDirections[i+1], desired, new_joint, joints[i+1].position, spider.getMaxAngle());//SOME CONSTRAINTS
+                }
+                
+
             }
     
             
@@ -140,9 +154,7 @@ public class Leg : MonoBehaviour
             {
                  
                 Vector3 desired = joints[i + 1].position - joints[i].position;
-                float link_length = 2f; 
-                Vector3 new_joint = joints[i].position + desired.normalized * link_length;
-                float max_angle = 60f;
+                Vector3 new_joint = joints[i].position + desired.normalized * 2f;
                 Vector3 prev = joints[i + 1].position;
                 
             
