@@ -4,6 +4,8 @@ version. Later versions should also work, but if you run into issues then use th
 should take a while to open the project for the first time. Once the project is opened, open the 
 scene in Assets -> Scenes -> SampleScene. 
 
+Use "W, A, S, D" to control the spider
+
 No constraints: https://www.youtube.com/watch?v=yZOSPxLqdcI (uncheck ‘constraint’ in Inspector of Body)
 
 Too many constraints: https://www.youtube.com/watch?v=kGo65_WiOIE(check ‘constraint’ in Inspector and set a small angle, for example, 10)
